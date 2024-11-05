@@ -5,5 +5,10 @@ variable "gcp-username" {
 
 variable "gcp-project" {
   description = "GCP project"
-  default     = "cc2025-mtorres"
+  default     = "cc2021-clouddi"
+}
+
+variable "gcp-image" {
+  description = "Container Registry Image name"
+  default     = "wsb:v0.2"
 }

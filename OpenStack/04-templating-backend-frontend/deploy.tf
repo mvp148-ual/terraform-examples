@@ -1,48 +1,39 @@
 #Crear nodo mysql
 resource "openstack_compute_instance_v2" "mysql" {
   name              = "mysql"
-  image_name        = "Ubuntu 16.04 LTS"
+  image_name        = "ubuntu-24"
   availability_zone = "nova"
-  flavor_name       = "medium"
+  flavor_name       = "m1.medium"
   key_pair          = var.openstack_keypair
   security_groups   = ["default"]
   network {
-    name = "mtorres-net"
+    name = var.openstack_network_name
   }
-
   user_data = file("install_mysql.sh")
-}
-
-data "template_file" "install_appserver" {
-  template = file("install_appserver.tpl")
-  vars = {
-    mysql_ip = openstack_compute_instance_v2.mysql.network.0.fixed_ip_v4
-  }
-  depends_on = [openstack_compute_instance_v2.mysql]
 }
 
 #Crear nodo appserver
 resource "openstack_compute_instance_v2" "appserver" {
   name              = "appserver"
-  image_name        = "Ubuntu 16.04 LTS"
+  image_name        = "ubuntu-24"
   availability_zone = "nova"
-  flavor_name       = "medium"
+  flavor_name       = "m1.medium"
   key_pair          = var.openstack_keypair
   security_groups   = ["default"]
   network {
-    name = "mtorres-net"
+    name = var.openstack_network_name
   }
 
-  user_data = data.template_file.install_appserver.rendered
+  user_data = templatefile("${path.module}/install_appserver.tpl", { mysql_ip = openstack_compute_instance_v2.mysql.network.0.fixed_ip_v4 })
 
 }
 
 resource "openstack_networking_floatingip_v2" "mysql_ip" {
-  pool = "ext-net"
+  pool = "external-network"
 }
 
 resource "openstack_networking_floatingip_v2" "appserver_ip" {
-  pool = "ext-net"
+  pool = "external-network"
 }
 
 resource "openstack_compute_floatingip_associate_v2" "mysql_ip" {
@@ -55,14 +46,12 @@ resource "openstack_compute_floatingip_associate_v2" "appserver_ip" {
   instance_id = openstack_compute_instance_v2.appserver.id
 }
 
-output MySQL_Floating_IP {
+output "MySQL_Floating_IP" {
   value      = openstack_networking_floatingip_v2.mysql_ip.address
   depends_on = [openstack_networking_floatingip_v2.mysql_ip]
 }
 
-output Appserver_Floating_IP {
+output "Appserver_Floating_IP" {
   value      = openstack_networking_floatingip_v2.appserver_ip.address
   depends_on = [openstack_networking_floatingip_v2.appserver_ip]
 }
-
-

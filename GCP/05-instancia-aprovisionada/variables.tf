@@ -5,5 +5,10 @@ variable "gcp-username" {
 
 variable "gcp-project" {
   description = "GCP project"
-  default     = "cc2021-clouddi"
+  default     = "cc2025-mtorres"
+}
+
+variable "gcp-network" {
+  description = "GCP network"
+  default     = "terraform-network"
 }

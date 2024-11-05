@@ -1,28 +1,10 @@
-terraform {
-  required_providers {
-    google = {
-      source = "hashicorp/google"
-    }
-  }
-}
-
-provider "google" {
-  version = "3.5.0"
-
-  credentials = file("../gcp-identity.json")
-
-  project = var.gcp-project
-  region  = "us-central1"
-  zone    = "us-central1-a"
-}
-
 resource "google_compute_instance" "tf-vm" {
   name         = "tf-vm"
-  zone         = "us-central1-a"
+  zone         = "us-central1-c"
   machine_type = "n1-standard-1"
   boot_disk {
     initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-1804-lts"
+      image = "debian-cloud/debian-11"
     }
   }
 
@@ -35,8 +17,8 @@ resource "google_compute_instance" "tf-vm" {
   # metadata_startup_script = "${file("update-docker.sh")}"
 
   network_interface {
-    network    = "default"
-    subnetwork = "default"
+    network    = var.gcp-network
+    subnetwork = var.gcp-network
 
     access_config {}
   }
